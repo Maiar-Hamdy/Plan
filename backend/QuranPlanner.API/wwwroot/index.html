@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title data-i18n="appTitle">🌙 مخطط القرآن</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+<style>
+  :root{
+    --pink:#ff8fab; --mint:#7bdff2; --sun:#ffd670; --purple:#b79ced;
+    --green:#b9fbc0; --cream:#fff7f0; --ink:#3a2b4a; --ink2:#7a6a8a;
+    --shadow:0 8px 0 rgba(0,0,0,.12);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;min-height:100vh;padding:24px;
+    font-family:'Cairo','Fredoka',sans-serif;
+    background: radial-gradient(circle at 10% 10%, #ffe5ec 0, transparent 40%), radial-gradient(circle at 90% 20%, #d6f8ff 0, transparent 40%), radial-gradient(circle at 50% 90%, #fff3c4 0, transparent 40%), linear-gradient(135deg,#fff7f0,#f6e8ff);
+    color:var(--ink);
+  }
+  html[dir="ltr"] body{font-family:'Fredoka','Cairo',sans-serif;}
+  header{max-width:1200px;margin:0 auto 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  h1{font-size:2.2rem;margin:0;color:#5b3b8c;background:linear-gradient(135deg,#b79ced,#ff8fab);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .lang-btn{background:linear-gradient(180deg,#9ee7ff,#7bdff2);color:#04405a;border:none;padding:10px 20px;border-radius:14px;font-weight:800;cursor:pointer;font-family:inherit;font-size:1rem;box-shadow:0 4px 0 rgba(0,0,0,.1);transition:.15s;}
+  .lang-btn:hover{transform:translateY(-2px);}
+  .lang-btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.15);}
+  .tabs{max-width:1200px;margin:0 auto 20px;display:flex;gap:8px;flex-wrap:wrap;}
+  .tab{padding:12px 22px;border-radius:16px;border:3px solid #e2d8ff;background:#fff;cursor:pointer;font-weight:700;font-family:inherit;font-size:1rem;color:#6a539b;transition:.2s;}
+  .tab.active{background:linear-gradient(135deg,#ffb3d1,#ff8fab);color:#fff;border-color:#ff8fab;box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .tab:hover{transform:translateY(-2px);}
+  .card{background:#fff;border-radius:26px;padding:24px;box-shadow:0 12px 28px rgba(140,110,190,.15);border:4px dashed #ffd6ec;max-width:1200px;margin:0 auto 20px;}
+  .card h2{margin:0 0 16px;color:#5b3b8c;font-size:1.5rem;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+  label{display:block;font-weight:700;margin-bottom:6px;color:#6a539b;font-size:.95rem;}
+  input,select,textarea{width:100%;padding:12px 14px;border-radius:14px;border:3px solid #e2d8ff;font-size:1rem;background:#fdfbff;font-family:inherit;transition:.2s;color:var(--ink);}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--purple);background:#fff;}
+  button.primary{background:linear-gradient(180deg,#ffb3d1,#ff8fab);color:#fff;font-weight:800;border:none;padding:14px 28px;border-radius:18px;font-size:1rem;cursor:pointer;font-family:inherit;box-shadow:var(--shadow);transition:.15s;letter-spacing:.3px;margin-top:8px;}
+  button.primary:hover{transform:translateY(-2px);}
+  button.primary:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.15);}
+  button.primary:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+  button.secondary{background:linear-gradient(180deg,#9ee7ff,#7bdff2);color:#04405a;font-weight:800;border:none;padding:12px 22px;border-radius:16px;font-size:.95rem;cursor:pointer;font-family:inherit;box-shadow:0 5px 0 rgba(0,0,0,.1);transition:.15s;}
+  button.secondary:hover{transform:translateY(-2px);}
+  button.danger{background:linear-gradient(180deg,#ffb3b3,#ff8080);color:#fff;font-weight:800;border:none;padding:10px 20px;border-radius:14px;font-size:.9rem;cursor:pointer;font-family:inherit;box-shadow:0 4px 0 rgba(0,0,0,.1);transition:.15s;}
+  .plan-card{background:#fff;border-radius:22px;padding:20px;margin-bottom:14px;border:3px solid #e8f4ff;box-shadow:0 6px 0 rgba(183,156,237,.15);transition:.2s;}
+  .plan-card:hover{transform:translateY(-2px);}
+  .plan-card h3{margin:0 0 8px;color:#5b3b8c;font-size:1.2rem;}
+  .plan-card .meta{color:#7a6a8a;font-size:.9rem;margin:4px 0;}
+  .plan-card .progress{background:#f0e6ff;border-radius:12px;height:18px;overflow:hidden;margin:10px 0;}
+  .plan-card .progress-fill{background:linear-gradient(90deg,#7bdff2,#b79ced,#ff8fab);height:100%;transition:width .5s;border-radius:12px;}
+  .plan-card .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .session-card{background:#fff;border-radius:20px;padding:16px;position:relative;border:3px solid #e8f4ff;box-shadow:0 5px 0 rgba(183,156,237,.15);transition:.2s;margin-bottom:12px;}
+  .session-card.done{background:linear-gradient(135deg,#e6ffec,#f0fff6);border-color:#9be7b0;}
+  .session-card .badge{position:absolute;top:-10px;inset-inline-end:-6px;background:var(--sun);padding:4px 12px;border-radius:14px;font-size:.75rem;font-weight:800;color:#7a5500;}
+  .session-card h4{margin:0 0 6px;font-size:1rem;color:#4b356f;}
+  .session-card .ref{background:#f4ecff;display:inline-block;padding:4px 12px;border-radius:12px;font-weight:700;color:#7a53c8;font-size:.9rem;margin:4px 0;}
+  .session-card .meta{font-size:.85rem;color:#887aa3;margin-top:4px;}
+  .session-card .desc{margin-top:8px;font-size:.85rem;background:#fff9e6;padding:8px 10px;border-radius:10px;border-inline-start:4px solid var(--sun);}
+  .session-card .toggle{background:var(--green);color:#0a6b2c;font-size:.85rem;padding:6px 14px;border-radius:10px;margin-top:8px;border:none;cursor:pointer;font-weight:800;font-family:inherit;}
+  .session-card.done .toggle{background:#c8ffd6;}
+  .star { transition: color 0.2s, transform 0.1s; }
+  .star:hover { transform: scale(1.2); }
+  .toast{position:fixed;bottom:24px;inset-inline-start:24px;background:#5b3b8c;color:#fff;padding:14px 22px;border-radius:14px;font-weight:700;opacity:0;transition:.3s;pointer-events:none;box-shadow:0 8px 20px rgba(0,0,0,.2);z-index:999;}
+  .toast.show{opacity:1;}
+  .empty{text-align:center;padding:40px 20px;color:#9a8bb3;font-size:1.1rem;}
+  .empty .big{font-size:3rem;display:block;margin-bottom:10px;}
+  .error-box{background:#ffe3e3;color:#a30000;padding:12px 16px;border-radius:14px;border:2px solid #ffb3b3;margin-top:10px;display:none;}
+  .error-box.show{display:block;}
+  .hidden{display:none !important;}
+  .sessions-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:14px;}
+  .spinner{display:inline-block;width:16px;height:16px;border:3px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;margin-inline-start:8px;vertical-align:middle;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (max-width:600px){h1{font-size:1.6rem;} .card{padding:16px;border-radius:20px;} .tab{padding:10px 16px;font-size:.9rem;}}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1 data-i18n="appTitle">🌙 مخطط القرآن</h1>
+  <button class="lang-btn" id="langBtn"><span id="langLabel">English</span></button>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="new" data-i18n="tabNew">➕ خطة جديدة</button>
+  <button class="tab" data-tab="student" data-i18n="tabStudent">👤 خطط الطالب</button>
+  <button class="tab" data-tab="all" data-i18n="tabAll">📚 كل الخطط</button>
+</div>
+
+<div id="tabNew" class="tab-content">
+  <div class="card">
+    <h2 data-i18n="newPlanTitle">إنشاء خطة جديدة</h2>
+
+    <div class="grid">
+      <div>
+        <label data-i18n="lblStudentSelect">اختر طالباً موجوداً أو أضف جديداً</label>
+        <select id="studentSelect"><option value="" data-i18n="optNewStudent">-- طالب جديد --</option></select>
+      </div>
+      <div id="newStudentFields">
+        <label data-i18n="lblStudentName">اسم الطالب</label>
+        <input id="studentName" type="text" placeholder="أحمد محمد" />
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:16px;">
+      <div>
+        <label data-i18n="lblStageName">اسم المرحلة (الجزء)</label>
+        <select id="stageName">
+          <option value="الجزء الأول">الجزء الأول</option><option value="الجزء الثاني">الجزء الثاني</option><option value="الجزء الثالث">الجزء الثالث</option><option value="الجزء الرابع">الجزء الرابع</option><option value="الجزء الخامس">الجزء الخامس</option><option value="الجزء السادس">الجزء السادس</option><option value="الجزء السابع">الجزء السابع</option><option value="الجزء الثامن">الجزء الثامن</option><option value="الجزء التاسع">الجزء التاسع</option><option value="الجزء العاشر">الجزء العاشر</option><option value="الجزء الحادي عشر">الجزء الحادي عشر</option><option value="الجزء الثاني عشر">الجزء الثاني عشر</option><option value="الجزء الثالث عشر">الجزء الثالث عشر</option><option value="الجزء الرابع عشر">الجزء الرابع عشر</option><option value="الجزء الخامس عشر">الجزء الخامس عشر</option><option value="الجزء السادس عشر">الجزء السادس عشر</option><option value="الجزء السابع عشر">الجزء السابع عشر</option><option value="الجزء الثامن عشر">الجزء الثامن عشر</option><option value="الجزء التاسع عشر">الجزء التاسع عشر</option><option value="الجزء العشرون">الجزء العشرون</option><option value="الجزء الحادي والعشرون">الجزء الحادي والعشرون</option><option value="الجزء الثاني والعشرون">الجزء الثاني والعشرون</option><option value="الجزء الثالث والعشرون">الجزء الثالث والعشرون</option><option value="الجزء الرابع والعشرون">الجزء الرابع والعشرون</option><option value="الجزء الخامس والعشرون">الجزء الخامس والعشرون</option><option value="الجزء السادس والعشرون">الجزء السادس والعشرون</option><option value="الجزء السابع والعشرون">الجزء السابع والعشرون</option><option value="الجزء الثامن والعشرون">الجزء الثامن والعشرون</option><option value="الجزء التاسع والعشرون">الجزء التاسع والعشرون</option><option value="الجزء الثلاثون">الجزء الثلاثون</option>
+        </select>
+      </div>
+      <div>
+        <label data-i18n="lblStartDate">تاريخ بدء المرحلة</label>
+        <input id="startDate" type="date" />
+      </div>
+      <div>
+        <label data-i18n="lblAmount">كمية الحفظ</label>
+        <select id="amountLabel">
+          <option value="1|سطر">سطر</option><option value="2|سطرين">سطرين</option><option value="3.75|ربع صفحة">ربع صفحة</option><option value="5|ثلث صفحة">ثلث صفحة</option><option value="7.5|نصف صفحة" selected>نصف صفحة</option><option value="15|صفحة">صفحة</option><option value="22.5|صفحة ونصف">صفحة ونصف</option><option value="30|صفحتان">صفحتان</option><option value="50|ربع جزء">ربع جزء</option><option value="100|ربعان">ربعان</option><option value="150|ثلاثة أرباع">ثلاثة أرباع</option><option value="200|حزب">حزب (4 أرباع)</option>
+        </select>
+      </div>
+      <div>
+        <label data-i18n="lblDaysPerWeek">عدد أيام الحضور أسبوعياً</label>
+        <input id="daysPerWeek" type="number" min="1" max="7" value="5" />
+      </div>
+      <div>
+        <label data-i18n="lblStartSurah">سورة البداية</label>
+        <select id="startSurah"></select>
+      </div>
+      <div>
+        <label data-i18n="lblStartAyah">آية البداية</label>
+        <input id="startAyah" type="number" min="1" value="1" />
+      </div>
+      <div>
+        <label data-i18n="lblDuration">عدد أسابيع الخطة</label>
+        <input id="durationWeeks" type="number" min="1" max="52" value="4" />
+      </div>
+      <div>
+        <label data-i18n="lblTajweedLevel">مستوى التجويد</label>
+        <select id="tajweedLevel"><option value="صغار">صغار (Small)</option><option value="شباب">شباب (Youth)</option><option value="كبار">كبار (Adults)</option></select>
+      </div>
+    </div>
+
+    <button class="primary" id="createPlanBtn"><span data-i18n="btnCreatePlan">💾 حفظ الخطة</span></button>
+    <div id="errorBox" class="error-box"></div>
+  </div>
+</div>
+
+<div id="tabStudent" class="tab-content hidden">
+  <div class="card">
+    <h2 data-i18n="studentPlansTitle">خطط الطالب</h2>
+    <div class="grid">
+      <div>
+        <label data-i18n="lblPickStudent">اختر الطالب</label>
+        <select id="studentFilter"><option value="">--</option></select>
+      </div>
+      <div style="display:flex;align-items:flex-end;">
+        <button class="secondary" id="loadPlansBtn" data-i18n="btnLoadPlans">📖 عرض الخطط</button>
+      </div>
+    </div>
+    <div id="studentPlansList" style="margin-top:18px;"></div>
+  </div>
+</div>
+
+<div id="tabAll" class="tab-content hidden">
+  <div class="card">
+    <h2 data-i18n="allPlansTitle">كل الخطط</h2>
+    <div id="allPlansList"></div>
+  </div>
+</div>
+
+<div id="planDetail" class="card hidden" style="margin-top:20px;">
+  <h2 id="planDetailTitle">تفاصيل الخطة</h2>
+  <div id="planDetailMeta"></div>
+  <div id="planDetailSessions" class="sessions-grid"></div>
+  
+  <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+    <button class="primary" id="pdfBtn" style="background:linear-gradient(180deg,#9ee7ff,#7bdff2); color:#04405a; box-shadow:0 5px 0 #4DD0E1;">🖨️ حفظ الخطة PDF</button>
+    <button class="secondary" id="closePlanDetail" data-i18n="btnClose">إغلاق</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const I18N = {
+  ar: { appTitle:"🌙 مخطط القرآن", tabNew:"➕ خطة جديدة", tabStudent:"👤 خطط الطالب", tabAll:"📚 كل الخطط", newPlanTitle:"إنشاء خطة جديدة", lblStudentSelect:"اختر طالباً موجوداً أو أضف جديداً", optNewStudent:"-- طالب جديد --", lblStudentName:"اسم الطالب", lblStageName:"اسم المرحلة (الجزء)", lblStartDate:"تاريخ بدء المرحلة", lblAmount:"كمية الحفظ", lblDaysPerWeek:"عدد أيام الحضور أسبوعياً", lblStartSurah:"سورة البداية", lblStartAyah:"آية البداية", lblDuration:"عدد أسابيع الخطة", lblTajweedLevel:"مستوى التجويد", btnCreatePlan:"💾 حفظ الخطة", studentPlansTitle:"خطط الطالب", lblPickStudent:"اختر الطالب", btnLoadPlans:"📖 عرض الخطط", allPlansTitle:"كل الخطط", btnClose:"إغلاق", errNameRequired:"الرجاء إدخال اسم الطالب", errGeneric:"حدث خطأ. حاول مرة أخرى.", msgPlanCreated:"✅ تم إنشاء الخطة بنجاح!", msgSessionToggled:"✅ تم تحديث الجلسة", msgLoading:"جارٍ التحميل...", msgNoPlans:"لا توجد خطط بعد.", msgNoStudents:"لا يوجد طلاب بعد.", sessionsLabel:"الجلسة", weekLabel:"الأسبوع", completedOf:"من", sessionsDone:"جلسة مكتملة", btnOpen:"فتح", btnDelete:"حذف", confirmDelete:"هل أنت متأكد من حذف هذه الخطة؟", msgDeleted:"🗑️ تم الحذف" },
+  en: { appTitle:"🌙 Quran Planner", tabNew:"➕ New Plan", tabStudent:"👤 Student Plans", tabAll:"📚 All Plans", newPlanTitle:"Create a New Plan", lblStudentSelect:"Pick an existing student or add new", optNewStudent:"-- New Student --", lblStudentName:"Student name", lblStageName:"Stage (Juz)", lblStartDate:"Stage start date", lblAmount:"Memorization amount", lblDaysPerWeek:"Attendance days/week", lblStartSurah:"Start surah", lblStartAyah:"Start ayah", lblDuration:"Plan duration (weeks)", lblTajweedLevel:"Tajweed level", btnCreatePlan:"💾 Save Plan", studentPlansTitle:"Student Plans", lblPickStudent:"Pick student", btnLoadPlans:"📖 Load Plans", allPlansTitle:"All Plans", btnClose:"Close", errNameRequired:"Please enter the student name", errGeneric:"Something went wrong.", msgPlanCreated:"✅ Plan created successfully!", msgSessionToggled:"✅ Session updated", msgLoading:"Loading...", msgNoPlans:"No plans yet.", msgNoStudents:"No students yet.", sessionsLabel:"Session", weekLabel:"Week", completedOf:"of", sessionsDone:"sessions done", btnOpen:"Open", btnDelete:"Delete", confirmDelete:"Are you sure?", msgDeleted:"🗑️ Deleted" }
+};
+
+let currentLang = localStorage.getItem("lang") || "ar";
+const API = "";
+const t = key => (I18N[currentLang] && I18N[currentLang][key]) || key;
+const $ = id => document.getElementById(id);
+
+function applyLang() {
+  document.documentElement.lang = currentLang;
+  document.documentElement.dir = currentLang === "ar" ? "rtl" : "ltr";
+  $("langLabel").textContent = currentLang === "ar" ? "English" : "العربية";
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (el.tagName === "OPTION") el.textContent = t(key);
+    else el.textContent = t(key);
+  });
+}
+
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    tab.classList.add("active");
+    document.querySelectorAll(".tab-content").forEach(x => x.classList.add("hidden"));
+    $("tab" + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.remove("hidden");
+    if (tab.dataset.tab === "all") loadAllPlans();
+  });
+});
+
+$("langBtn").addEventListener("click", () => {
+  currentLang = currentLang === "ar" ? "en" : "ar";
+  localStorage.setItem("lang", currentLang);
+  applyLang();
+});
+
+async function apiGet(path) { const r = await fetch(API + path); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+async function apiPost(path, body) { const r = await fetch(API + path, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) }); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+async function apiDelete(path) { const r = await fetch(API + path, { method:"DELETE" }); if (!r.ok) throw new Error(await r.text()); return r.json(); }
+
+// حدث تغيير الجزء لجلب السور
+$("stageName").addEventListener("change", async (e) => {
+  const juzIndex = Array.from(e.target.options).indexOf(e.target.selectedOptions[0]) + 1;
+  try {
+    const surahs = await apiGet(`/api/plan/surahs-by-juz/${juzIndex}`);
+    const sel = $("startSurah");
+    sel.innerHTML = "";
+    if (surahs.length === 0) {
+      sel.innerHTML = "<option value=''>لا توجد سور</option>";
+      return;
+    }
+    surahs.forEach(s => {
+      const o = document.createElement("option");
+      o.value = s.name;
+      o.textContent = `${s.number}. ${s.arabicName || s.name} (${s.ayahCount})`;
+      sel.appendChild(o);
+    });
+  } catch (err) { console.warn("خطأ في جلب السور:", err); }
+});
+
+async function loadStudents() {
+  try {
+    const list = await apiGet("/api/students");
+    const s1 = $("studentSelect"), s2 = $("studentFilter");
+    s1.innerHTML = `<option value="">${t("optNewStudent")}</option>`;
+    s2.innerHTML = `<option value="">--</option>`;
+    list.forEach(st => {
+      const o1 = document.createElement("option"); o1.value = st.id; o1.textContent = `${st.name} (${st.planCount})`; s1.appendChild(o1);
+      const o2 = document.createElement("option"); o2.value = st.id; o2.textContent = st.name; s2.appendChild(o2);
+    });
+  } catch (e) { console.warn("students:", e); }
+}
+
+$("studentSelect").addEventListener("change", e => {
+  const isNew = !e.target.value;
+  $("newStudentFields").style.display = isNew ? "" : "none";
+  if (!isNew) $("studentName").value = "";
+});
+
+$("createPlanBtn").addEventListener("click", async () => {
+  const err = $("errorBox"); err.classList.remove("show");
+  const studentId = $("studentSelect").value, studentName = $("studentName").value.trim();
+  if (!studentId && !studentName) { err.textContent = t("errNameRequired"); err.classList.add("show"); return; }
+
+  const [amtLines, amtLabel] = $("amountLabel").value.split("|");
+  const dto = {
+    studentId: studentId ? parseInt(studentId) : null,
+    studentName: studentId ? null : studentName,
+    stageName: $("stageName").value,
+    startDate: $("startDate").value || new Date().toISOString().slice(0,10),
+    amountLabel: amtLabel,
+    amountLines: parseFloat(amtLines),
+    daysPerWeek: parseInt($("daysPerWeek").value) || 5,
+    startSurah: $("startSurah").value || "Al-Fatiha",
+    startAyah: parseInt($("startAyah").value) || 1,
+    durationWeeks: parseInt($("durationWeeks").value) || 4,
+    tajweedLevel: $("tajweedLevel").value
+  };
+
+  const btn = $("createPlanBtn"); btn.disabled = true; btn.innerHTML = `<span>${t("msgLoading")}</span><span class="spinner"></span>`;
+  try {
+    await apiPost("/api/plans", dto);
+    toast(t("msgPlanCreated"));
+    await loadStudents(); await loadAllPlans();
+    $("studentName").value = ""; $("studentSelect").value = ""; $("newStudentFields").style.display = "";
+  } catch (e) {
+    err.textContent = t("errGeneric") + " " + e.message; err.classList.add("show");
+  } finally {
+    btn.disabled = false; btn.innerHTML = `<span data-i18n="btnCreatePlan">${t("btnCreatePlan")}</span>`;
+  }
+});
+
+$("loadPlansBtn").addEventListener("click", async () => {
+  const sid = $("studentFilter").value; if (!sid) return;
+  const list = await apiGet(`/api/plans/by-student/${sid}`);
+  renderPlanList(list, $("studentPlansList"));
+});
+
+async function loadAllPlans() {
+  try {
+    const students = await apiGet("/api/students");
+    const container = $("allPlansList"); container.innerHTML = "";
+    if (students.length === 0) { container.innerHTML = `<div class="empty"><span class="big">📭</span>${t("msgNoStudents")}</div>`; return; }
+    for (const st of students) {
+      const plans = await apiGet(`/api/plans/by-student/${st.id}`);
+      if (plans.length === 0) continue;
+      const div = document.createElement("div"); div.innerHTML = `<h3 style="color:#5b3b8c;margin-top:18px;">👤 ${escapeHtml(st.name)}</h3>`;
+      const inner = document.createElement("div"); renderPlanList(plans, inner, false); div.appendChild(inner); container.appendChild(div);
+    }
+    if (container.innerHTML.trim() === "") container.innerHTML = `<div class="empty"><span class="big">📭</span>${t("msgNoPlans")}</div>`;
+  } catch (e) { $("allPlansList").innerHTML = `<div class="empty">${t("errGeneric")}</div>`; }
+}
+
+function renderPlanList(plans, container, clear = true) {
+  if (clear) container.innerHTML = "";
+  if (!plans.length) { container.innerHTML = `<div class="empty"><span class="big">📭</span>${t("msgNoPlans")}</div>`; return; }
+  plans.forEach(p => {
+    const card = document.createElement("div"); card.className = "plan-card";
+    card.innerHTML = `
+      <h3>📖 ${escapeHtml(p.stageName || p.studentName)}</h3>
+      <div class="meta">🗓️ ${escapeHtml(p.startDate?.slice(0,10) || "")}</div>
+      <div class="meta">📏 ${escapeHtml(p.amountLabel)} (${p.amountLines} ${currentLang==="ar"?"سطر":"lines"})</div>
+      <div class="meta">📅 ${p.daysPerWeek} ${currentLang==="ar"?"أيام/أسبوع":"days/week"}</div>
+      <div class="progress"><div class="progress-fill" style="width:${p.progressPercent}%"></div></div>
+      <div class="meta"><strong>${Math.round(p.progressPercent)}%</strong> — ${p.completedSessions} ${t("completedOf")} ${p.totalSessions} ${t("sessionsDone")}</div>
+      <div class="actions">
+        <button class="secondary" data-open="${p.id}">${t("btnOpen")}</button>
+        <button class="primary" data-pdf="${p.id}" style="padding:8px 16px; font-size:0.9rem; background:linear-gradient(180deg,#ffd670,#ffb347); color:#7a5500; box-shadow:0 4px 0 #c48b00; margin-top:0;">⬇️ تحميل PDF</button>
+        <button class="danger" data-del="${p.id}">${t("btnDelete")}</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  container.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openPlanDetail(b.dataset.open)));
+  container.querySelectorAll("[data-pdf]").forEach(b => b.addEventListener("click", () => downloadPdfDirect(b.dataset.pdf)));
+  container.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+    if (!confirm(t("confirmDelete"))) return;
+    await apiDelete(`/api/plans/${b.dataset.del}`); toast(t("msgDeleted"));
+    await loadAllPlans(); const sid = $("studentFilter").value; if (sid) $("loadPlansBtn").click();
+  }));
+}
+
+async function downloadPdfDirect(planId) {
+  toast("جاري رسم الخطة...");
+  const p = await apiGet(`/api/plans/${planId}`);
+  
+  // إعدادات الرسم
+  const boxWidth = 500;
+  const boxHeight = 120;
+  const padding = 20;
+  const startY = 250;
+  
+  // حساب ارتفاع الصورة الكلي بناءً على عدد الجلسات
+  const totalHeight = startY + (p.sessions.length * (boxHeight + padding)) + 50;
+  
+  let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="${totalHeight}" viewBox="0 0 1000 ${totalHeight}">`;
+  
+  // خلفية الصورة
+  svgContent += `<rect width="100%" height="100%" fill="#ffffff" />`;
+
+  // ترويسة الخطة (الاسم والمرحلة)
+  svgContent += `
+    <text x="500" y="60" text-anchor="middle" font-family="Cairo, sans-serif" font-size="32" font-weight="bold" fill="#5b3b8c">🌙 خطة الطالب: ${p.studentName}</text>
+    <text x="500" y="100" text-anchor="middle" font-family="Cairo, sans-serif" font-size="20" fill="#7a6a8a">${p.stageName}</text>
+    <rect x="300" y="130" width="400" height="50" rx="10" fill="#fff0f6" stroke="#ffd6ec" stroke-width="2" />
+    <text x="500" y="160" text-anchor="middle" font-family="Cairo, sans-serif" font-size="16" fill="#3a2b4a">
+      كمية الحفظ: ${p.amountLabel} | أيام الحضور: ${p.daysPerWeek} | التقدم: ${Math.round(p.progressPercent)}%
+    </text>
+  `;
+
+  let currentY = startY;
+
+  p.sessions.forEach((s, index) => {
+    const isPromotion = s.isSurahPromotion || (s.reviewRef === "" && s.title.includes("تجهيز"));
+    
+    // خلفية الجلسة
+    const boxColor = isPromotion ? "#fff3c4" : "#fdfbff";
+    const borderColor = isPromotion ? "#ffd670" : "#e2d8ff";
+    
+    svgContent += `<rect x="50" y="${currentY}" width="900" height="${boxHeight}" rx="15" fill="${boxColor}" stroke="${borderColor}" stroke-width="3" />`;
+    
+    if (isPromotion) {
+      // شكل التصعيد
+      svgContent += `
+        <text x="500" y="${currentY + 50}" text-anchor="middle" font-family="Cairo, sans-serif" font-size="22" font-weight="bold" fill="#7a5500">${s.title}</text>
+        <text x="500" y="${currentY + 80}" text-anchor="middle" font-family="Cairo, sans-serif" font-size="16" fill="#7a5500">${s.description}</text>
+      `;
+    } else {
+      // شكل الجلسة العادية (حفظ، مراجعة، تجويد)
+      svgContent += `
+        <text x="920" y="${currentY + 30}" text-anchor="end" font-family="Cairo, sans-serif" font-size="16" font-weight="bold" fill="#5b3b8c">الجلسة ${s.sessionNumber} (${s.date.slice(0,10)}) - الأسبوع ${s.weekNumber}</text>
+        <text x="920" y="${currentY + 60}" text-anchor="end" font-family="Cairo, sans-serif" font-size="18" font-weight="bold" fill="#3a2b4a">الحفظ: ${s.fromRef} ← ${s.toRef}</text>
+        <text x="920" y="${currentY + 90}" text-anchor="end" font-family="Cairo, sans-serif" font-size="16" fill="#7a53c8">المراجعة: ${s.reviewRef}</text>
+        
+        <rect x="60" y="${currentY + 35}" width="200" height="50" rx="8" fill="#f4ecff" />
+        <text x="160" y="${currentY + 55}" text-anchor="middle" font-family="Cairo, sans-serif" font-size="14" fill="#6a539b">📚 التجويد</text>
+        <text x="160" y="${currentY + 75}" text-anchor="middle" font-family="Cairo, sans-serif" font-size="14" fill="#6a539b">${s.tajweedLesson}</text>
+      `;
+    }
+    
+    currentY += boxHeight + padding;
+  });
+
+  svgContent += `</svg>`;
+
+  // تنزيل الملف كـ SVG
+  const blob = new Blob([svgContent], {type: "image/svg+xml;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Quran-Plan-${p.studentName}.svg`;
+  link.click();
+  URL.revokeObjectURL(url);
+  
+  toast("✅ تم تحميل الصورة بنجاح");
+}async function openPlanDetail(planId) {
+  const p = await apiGet(`/api/plans/${planId}`);
+  const box = $("planDetail"); box.classList.remove("hidden"); box.scrollIntoView({behavior:"smooth"});
+  $("planDetailTitle").textContent = `📖 ${p.stageName || p.studentName}`;
+  $("planDetailMeta").innerHTML = `
+    <div class="meta">👤 <strong>${escapeHtml(p.studentName)}</strong></div>
+    <div class="meta">🗓️ ${escapeHtml(p.startDate?.slice(0,10) || "")}</div>
+    <div class="meta">📏 ${escapeHtml(p.amountLabel)} (${p.amountLines} ${currentLang==="ar"?"سطر":"lines"})</div>
+    <div class="progress" style="background:#f0e6ff;border-radius:12px;height:18px;overflow:hidden;margin:10px 0;"><div class="progress-fill" style="background:linear-gradient(90deg,#7bdff2,#b79ced,#ff8fab);height:100%;width:${p.progressPercent}%;"></div></div>
+    <div class="meta"><strong>${Math.round(p.progressPercent)}%</strong> — ${p.completedSessions} ${t("completedOf")} ${p.totalSessions} ${t("sessionsDone")}</div>
+  `;
+
+  const sg = $("planDetailSessions"); sg.innerHTML = "";
+  p.sessions.forEach(s => {
+    const div = document.createElement("div"); div.className = "session-card" + (s.completed ? " done" : "");
+    div.innerHTML = `
+      <div class="badge">${t("weekLabel")} ${s.weekNumber} · ${t("sessionsLabel")} ${s.sessionNumber}</div>
+      <h4>${escapeHtml(s.emoji)} ${t("sessionsLabel")} ${s.sessionNumber}</h4>
+      <div class="ref">${escapeHtml(s.fromRef)} → ${escapeHtml(s.toRef)}</div>
+      <div class="meta">${escapeHtml(s.date?.slice(0,10) || "")} · ${s.amount} ${escapeHtml(s.unit)}</div>
+      <div class="desc">
+        ${s.reviewRef ? `<div><strong>🔄 المراجعة:</strong> ${escapeHtml(s.reviewRef)}</div>` : ""}
+        ${s.tajweedLesson ? `<div><strong>📚 التجويد:</strong> ${escapeHtml(s.tajweedLesson)}</div>` : ""}
+      </div>
+      ${s.isSurahPromotion ? `
+        <div style="background:#fff9e6;padding:10px;border-radius:10px;margin-top:10px;text-align:center;">
+          <div style="color:#7a5500;font-weight:800;margin-bottom:5px;">تقييم السورة:</div>
+          <div class="stars" data-sid="${s.id}">
+            ${[1,2,3,4,5].map(st => `<span class="star" data-val="${st}" style="font-size:24px;cursor:pointer;color:${s.stars >= st ? '#ffd670' : '#e2d8ff'}">★</span>`).join('')}
+          </div>
+        </div>
+      ` : `
+        <button class="toggle" data-sid="${s.id}">${s.completed ? "✅" : "☐"} ${t("btnOpen").replace("فتح","تحديد").replace("Open","Mark")}</button>
+      `}
+    `;
+    sg.appendChild(div);
+  });
+
+  sg.querySelectorAll(".star").forEach(st => {
+    st.addEventListener("click", async () => {
+      const sid = st.parentElement.dataset.sid, val = parseInt(st.dataset.val);
+      await apiPost(`/api/plans/session/${sid}/rate`, val); toast("✅ تم تقييم الحصة"); openPlanDetail(planId);
+    });
+  });
+
+  sg.querySelectorAll("[data-sid]").forEach(b => {
+    if(b.classList.contains("star")) return;
+    b.addEventListener("click", async () => {
+      await apiPost(`/api/plans/session/${b.dataset.sid}/toggle`, {}); toast(t("msgSessionToggled")); openPlanDetail(planId);
+    });
+  });
+}
+
+$("pdfBtn").addEventListener("click", async () => {
+  const element = $("planDetail");
+  
+  // إخفاء الأزرار مؤقتاً
+  const toggles = element.querySelectorAll(".toggle, .star, #closePlanDetail, #pdfBtn");
+  toggles.forEach(t => t.style.display = "none");
+
+  // إعطاء خلفية بيضاء
+  element.style.background = "#fff";
+  element.style.boxShadow = "none";
+  element.style.border = "none";
+
+  htmlToImage.toSvg(element, { quality: 1, backgroundColor: '#ffffff' })
+    .then(function (dataUrl) {
+      const link = document.createElement('a');
+      link.download = `Quran-Plan-Details.svg`;
+      link.href = dataUrl;
+      link.click();
+      toast("✅ تم التحميل بنجاح");
+    })
+    .catch(function (error) {
+      console.error('خطأ:', error);
+      alert("حدث خطأ.");
+    })
+    .finally(() => {
+      toggles.forEach(t => t.style.display = "");
+      element.style.background = "";
+      element.style.boxShadow = "";
+      element.style.border = "";
+    });
+});
+$("closePlanDetail").addEventListener("click", () => $("planDetail").classList.add("hidden"));
+
+applyLang(); loadStudents(); loadAllPlans();
+$('stageName').dispatchEvent(new Event('change'));
+</script>
+</body>
+</html>
